@@ -1,0 +1,32 @@
+[
+  {
+    "file": "01-shells-wheels-weather.jpg",
+    "format": "JPEG",
+    "size": [
+      1376,
+      768
+    ],
+    "mode": "RGB",
+    "bytes": 131791
+  },
+  {
+    "file": "02-earth-homing-swarms.jpg",
+    "format": "JPEG",
+    "size": [
+      1376,
+      768
+    ],
+    "mode": "RGB",
+    "bytes": 138506
+  },
+  {
+    "file": "03-energy-cosmic-jets.jpg",
+    "format": "JPEG",
+    "size": [
+      1376,
+      768
+    ],
+    "mode": "RGB",
+    "bytes": 145730
+  }
+]

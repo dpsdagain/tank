@@ -1,0 +1,23 @@
+# Supplied APK/decompiler inputs and signing material stay local.
+/decompiled/
+/t5_work/
+/oracle_test_artifacts/
+*.apk
+*.jks
+*.keystore
+*.pem
+*.key
+
+# Local caches, dependencies and machine settings.
+node_modules/
+__pycache__/
+*.pyc
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+
+# Unrelated native-app investigation reports and scratch screenshots.
+/PT_HD_*_Test_Report.md
+/current_screen.png

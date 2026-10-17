@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Pocket Tanks — Watch the fireworks</title><link rel="stylesheet" href="index.css"><script src="weapons.js" defer></script><script src="native-effects.js" defer></script><script src="assets/projectiles/painted/manifest.js" defer></script><script src="projectile-art.js" defer></script><script src="weapon-fx.js" defer></script>
+<style>
+body{background:#101725}.reel{max-width:1280px;margin:auto;padding:35px 35px 45px}.reel-head{display:flex;align-items:flex-end;justify-content:space-between;gap:25px;margin-bottom:26px}.back{color:#b5c9a1;font-size:11px}.reel h1{font-size:34px;margin:20px 0 10px;letter-spacing:-1px}.reel h1 span{color:#f2aa63}.reel p{color:#9babc1;font-size:12px;line-height:1.8;margin:0}.reel-actions{display:flex;gap:8px;flex-shrink:0}.reel-actions .button{font-size:11px;height:38px}.reel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.reel-card{border:1px solid #3b4a53;border-radius:10px;overflow:hidden;background:#192332}.reel-card canvas{display:block;width:100%;aspect-ratio:5/3;background:#14213a}.reel-info{padding:16px 18px 17px;border-top:1px solid #354452;position:relative}.reel-info img{width:36px;height:36px;float:right;border-radius:4px}.reel-info h2{font-size:16px;margin:0 0 7px}.reel-info span{font-size:8px;letter-spacing:1px;font-family:var(--mono);color:#9badc4}.reel-foot{margin-top:25px;color:#6f879f;font-size:9px;line-height:1.8}.reel-status{font-family:var(--mono);color:#c3df95;margin-top:14px;font-size:8px;letter-spacing:1px}@media(max-width:850px){.reel-grid{grid-template-columns:1fr 1fr}.reel{padding:25px 20px}.reel-head{display:block}.reel-actions{margin-top:20px}.reel h1{font-size:28px}}@media(max-width:480px){.reel-grid{grid-template-columns:1fr}.reel h1{font-size:27px}.reel-info h2{font-size:15px}}
+</style></head><body><main class="reel"><div class="reel-head"><div><a href="./" class="back">← Back to the hillside</a><h1>A little firepower. <span>A lot of color.</span></h1><p>Watch six weapons make their entrance. <a href="flight-preview.html" style="color:#d2ef98">See all 36 in flight ↗</a></p><div class="reel-status" id="reelStatus">LIVE WEAPON EFFECTS</div></div><div class="reel-actions"><button class="button button-light" id="holdImpact">Hold impact</button><button class="button button-lime" id="playReel">Play the fireworks ↗</button></div></div><div class="reel-grid" id="reelGrid"></div><p class="reel-foot">Flow-painted scenery and fire, with original palette and animation frames recovered from the supplied APK. Effects use the same renderer as the game.<br>Original game: Michael P. Welch / BlitWise.</p></main>
+<script>
+addEventListener('DOMContentLoaded', () => {
+  const scenery = new Image(); scenery.src = 'assets/art/flow-scenery.jpg';
+  const entries = [['big_shot','FLOW FIREBALL + IMPACT DEBRIS'],['mega_nuke','FOUR-STAGE NUCLEAR DETONATION'],['meteor_shower','PAINTED FIRE + NATIVE METEOR TRAILS'],['super_laser','LAYERED CYAN BEAM'],['napalm','ANIMATED FLAMES + EMBERS'],['lightning_strike','BRANCHED ELECTRICAL STRIKE']];
+  const cards = entries.map(([id,label]) => {
+    const weapon = POCKET_WEAPONS.find(w=>w.id===id), section = document.createElement('section'); section.className='reel-card';
+    section.innerHTML=`<canvas width="600" height="360" aria-label="${weapon.name} blast animation"></canvas><div class="reel-info"><img src="assets/icons/${weapon.icon}.png" alt=""><h2>${weapon.name}</h2><span>${label}</span></div>`;
+    document.querySelector('#reelGrid').append(section);
+    return {id,canvas:section.querySelector('canvas'),fx:new WeaponEffects(POCKET_NATIVE_FX,{particleLimit:330}),triggered:false};
+  });
+  let paused=false, time=0, previous=performance.now();
+  function fire(card) {
+    const id=card.id, event=(type,x,y,extra={})=>card.fx.event({type,weaponId:id,x,y,...extra});
+    if(id==='super_laser') {event('beam',45,220,{ex:350,ey:241});event('explosion',350,241,{radius:40});}
+    else if(id==='lightning_strike') {event('lightning',330,0,{ex:330,ey:241});event('explosion',330,241,{radius:50});}
+    else if(id==='napalm') for(let i=0;i<10;i++){event('explosion',220+i*19,242,{radius:18});event('flame',220+i*19,240);}
+    else if(id==='meteor_shower') for(let i=0;i<4;i++) event('explosion',235+i*48,242,{radius:34});
+    else event('explosion',315,245,{radius:id==='mega_nuke'?91:53});
+  }
+  function draw(card) {
+    const c=card.canvas.getContext('2d'), sky=c.createLinearGradient(0,0,0,300);sky.addColorStop(0,'#0e1831');sky.addColorStop(1,'#334b6b');c.fillStyle=sky;c.fillRect(0,0,600,360);
+    if(scenery.complete&&scenery.naturalWidth){const scale=Math.max(600/scenery.naturalWidth,360/scenery.naturalHeight),w=scenery.naturalWidth*scale,h=scenery.naturalHeight*scale;c.drawImage(scenery,(600-w)/2,(360-h)/2,w,h);}
+    c.fillStyle='#283f55';c.beginPath();c.moveTo(0,300);for(let x=0;x<=600;x+=5)c.lineTo(x,235+Math.sin(x*.012)*21);c.lineTo(600,360);c.lineTo(0,360);c.fill();
+    c.fillStyle='#49372f';c.fillRect(0,249,600,111);c.fillStyle='#86ca55';c.fillRect(0,246,600,3);c.fillStyle='#466b3b';c.fillRect(0,249,600,5);
+    c.fillStyle='#a7cf76';c.beginPath();c.roundRect(90,228,34,15,4);c.fill();c.fillStyle='#26383d';c.fillRect(87,240,40,7);c.strokeStyle='#c6ea91';c.lineWidth=4;c.beginPath();c.moveTo(108,229);c.lineTo(131,214);c.stroke();
+    card.fx.drawScorches(c);card.fx.draw(c);
+    if(card.id==='meteor_shower'&&time<1.05){for(let i=0;i<4;i++)card.fx.drawProjectile(c,{weapon:POCKET_WEAPONS.find(w=>w.id===card.id),child:true,x:265+i*48-time*90,y:40+i*12+time*160,vx:-90,vy:350,age:time,trail:[{x:280+i*48-time*90,y:10+i*12+time*160},{x:265+i*48-time*90,y:40+i*12+time*160}]});}
+  }
+  function reset(){time=0;cards.forEach(c=>{c.fx.reset();c.triggered=false;});}
+  function advance(dt){time+=dt;cards.forEach(card=>{if(!card.triggered&&time>=.1){fire(card);card.triggered=true;}card.fx.update(dt);});}
+  document.querySelector('#holdImpact').onclick=()=>{reset();for(let i=0;i<24;i++)advance(1/60);paused=true;document.querySelector('#reelStatus').textContent='IMPACT HELD · FLOW FIRE + WEAPON EFFECTS';cards.forEach(draw);};
+  document.querySelector('#playReel').onclick=()=>{reset();paused=false;document.querySelector('#reelStatus').textContent='LIVE WEAPON EFFECTS';};
+  function frame(now){const dt=Math.min((now-previous)/1000,.04);previous=now;if(!paused){advance(dt);if(time>3.1)reset();}cards.forEach(draw);requestAnimationFrame(frame);}requestAnimationFrame(frame);
+});
+</script></body></html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pocket Tanks HD — Weapon Physics Simulator & Testing Lab</title>
+  <meta name="description" content="Interactive 2D physics simulation lab testing 29 distinct Pocket Tanks HD weapons with destructible terrain, additive mud physics, hitscan lasers, homing projectiles, and complete 41-pack mechanics.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="index.css">
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="brand">
+      <div class="brand-badge">PROVE LAB</div>
+      <h1>Pocket Tanks HD <span>Physics Simulator</span></h1>
+    </div>
+    <div class="header-actions">
+      <div class="telemetry-pill">
+        <span class="dot live"></span> 29 Playable Weapons | 41 Packs Oracle
+      </div>
+      <button id="soundToggleBtn" class="btn btn-outline" title="Toggle Synthesized Web Audio">
+        <span id="soundIcon">🔊</span> Audio: <span id="soundStatus">ON</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="main-container">
+    
+    <!-- Hero / Simulation Section -->
+    <section class="simulation-section">
+      <div class="sim-viewport-card">
+        
+        <!-- Canvas Stage -->
+        <div class="canvas-wrapper">
+          <canvas id="gameCanvas" width="1000" height="520"></canvas>
+          
+          <!-- In-Canvas HUD Overlays -->
+          <div class="canvas-overlay top-left">
+            <div class="hud-box">
+              <span class="hud-label">CURRENT WEAPON</span>
+              <span id="hudWeaponName" class="hud-val highlight">Single Shot</span>
+              <span id="hudWeaponPack" class="hud-sub">Pack: Original | Ballistic Arc</span>
+            </div>
+          </div>
+
+          <div class="canvas-overlay top-right">
+            <div class="hud-grid">
+              <div class="hud-stat">
+                <span class="hud-label">WIND</span>
+                <span id="hudWind" class="hud-val">0.0 MPH</span>
+              </div>
+              <div class="hud-stat">
+                <span class="hud-label">TARGET HP</span>
+                <span id="hudTargetHP" class="hud-val green">100 / 100</span>
+              </div>
+              <div class="hud-stat">
+                <span class="hud-label">LAST DAMAGE</span>
+                <span id="hudLastDmg" class="hud-val orange">0 PTS</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notification Toast -->
+          <div id="simToast" class="sim-toast">Ready to Fire</div>
+        </div>
+
+        <!-- Firing Controls Bar -->
+        <div class="sim-controls-panel">
+          <div class="control-group angle-group">
+            <div class="control-header">
+              <label for="angleInput">ANGLE</label>
+              <span class="val-display" id="angleDisplay">45°</span>
+            </div>
+            <input type="range" id="angleInput" min="0" max="180" value="45" step="1">
+            <div class="quick-angles">
+              <button class="btn-chip" data-angle="30">30°</button>
+              <button class="btn-chip" data-angle="45">45°</button>
+              <button class="btn-chip" data-angle="60">60°</button>
+              <button class="btn-chip" data-angle="90">90°</button>
+              <button class="btn-chip" data-angle="135">135°</button>
+            </div>
+          </div>
+
+          <div class="control-group power-group">
+            <div class="control-header">
+              <label for="powerInput">POWER</label>
+              <span class="val-display" id="powerDisplay">65</span>
+            </div>
+            <input type="range" id="powerInput" min="1" max="100" value="65" step="1">
+            <div class="quick-powers">
+              <button class="btn-chip" data-power="25">25%</button>
+              <button class="btn-chip" data-power="50">50%</button>
+              <button class="btn-chip" data-power="65">65%</button>
+              <button class="btn-chip" data-power="85">85%</button>
+              <button class="btn-chip" data-power="100">100%</button>
+            </div>
+          </div>
+
+          <div class="control-actions">
+            <button id="fireBtn" class="btn btn-primary btn-fire">
+              <span class="fire-icon">🔥</span>
+              <span class="fire-text">FIRE CANNON</span>
+            </button>
+            <div class="utility-btns">
+              <button id="resetTerrainBtn" class="btn btn-secondary" title="Regenerate random destructible hills">
+                🎲 New Terrain
+              </button>
+              <button id="randomWindBtn" class="btn btn-secondary" title="Change atmospheric wind vector">
+                🌪️ Shift Wind
+              </button>
+              <button id="resetTargetBtn" class="btn btn-secondary" title="Reset Target Tank Position & Health">
+                🎯 Reset Target
+              </button>
+              <button id="slowMoBtn" class="btn btn-secondary" title="Toggle 0.4x slow motion physics">
+                ⏱️ <span id="slowMoLabel">Slow-Mo: OFF</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Real-Time Telemetry & Physics Breakdown -->
+      <div class="telemetry-card">
+        <h3>Live Ballistic Telemetry</h3>
+        <div class="telemetry-metrics">
+          <div class="metric">
+            <span class="metric-title">Horizontal Velocity ($v_x$)</span>
+            <span id="telVx" class="metric-value">0.00 px/s</span>
+          </div>
+          <div class="metric">
+            <span class="metric-title">Vertical Velocity ($v_y$)</span>
+            <span id="telVy" class="metric-value">0.00 px/s</span>
+          </div>
+          <div class="metric">
+            <span class="metric-title">Flight Duration ($t$)</span>
+            <span id="telTime" class="metric-value">0.00 s</span>
+          </div>
+          <div class="metric">
+            <span class="metric-title">Apex Altitude ($y_{\max}$)</span>
+            <span id="telApex" class="metric-value">0 px</span>
+          </div>
+          <div class="metric">
+            <span class="metric-title">Active Particles</span>
+            <span id="telParticles" class="metric-value">0</span>
+          </div>
+          <div class="metric">
+            <span class="metric-title">Terrain Voids / Sand Solids</span>
+            <span id="telTerrainDelta" class="metric-value">0 px²</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter & Weapon Browser Section -->
+    <section class="catalog-section">
+      <div class="section-header">
+        <div>
+          <h2>29 Tested Weapons Simulator Suite</h2>
+          <p>Select any weapon below to load its exact physics routine, ballistics formula, and terrain modifiers directly into the cannon.</p>
+        </div>
+        <div class="filter-pills" id="filterContainer">
+          <button class="filter-btn active" data-filter="all">All (29)</button>
+          <button class="filter-btn" data-filter="Ballistic">💥 Ballistics (6)</button>
+          <button class="filter-btn" data-filter="Cluster">🎆 Clusters (4)</button>
+          <button class="filter-btn" data-filter="Digger">⛏️ Tunnelers (3)</button>
+          <button class="filter-btn" data-filter="Dirt">🏔️ Dirt / Terrain (2)</button>
+          <button class="filter-btn" data-filter="Beam">⚡ Beams / Lasers (4)</button>
+          <button class="filter-btn" data-filter="Homing">🐝 Homing / Swarm (2)</button>
+          <button class="filter-btn" data-filter="Mobility">🚀 Tank Mobility (3)</button>
+          <button class="filter-btn" data-filter="Elemental">🔥 Elemental / DoT (3)</button>
+          <button class="filter-btn" data-filter="Exotic">🌀 Singularity / Exotic (2)</button>
+        </div>
+      </div>
+
+      <!-- Weapons Grid -->
+      <div class="weapons-grid" id="weaponsGrid">
+        <!-- Rendered dynamically via JavaScript -->
+      </div>
+    </section>
+
+    <!-- Comprehensive Physics & Remaining Weapons Guide -->
+    <section class="physics-deepdive-section">
+      <div class="section-header">
+        <h2>How the Remaining 370+ Weapons Work</h2>
+        <p>Mathematical taxonomy and trigger architectures from decrypted weapon lists and engine binaries.</p>
+      </div>
+
+      <div class="deepdive-grid">
+        
+        <div class="theory-card">
+          <div class="theory-icon">📐</div>
+          <h3>1. Parabolic Ballistic Integrator</h3>
+          <p>Used by standard artillery (e.g., <em>Single Shot, Big Shot, Nuke, Heavy Shell</em>). Trajectory is stepped per frame using forward Euler or Verlet integration with continuous gravity acceleration.</p>
+          <div class="formula-box">
+            <code>x(t) = x_0 + (v_0 · cos θ) · t + ½ · w · t²</code><br>
+            <code>y(t) = y_0 - (v_0 · sin θ) · t + ½ · g · t²</code>
+          </div>
+          <span class="theory-tag">Native Trigger: SingleShotTrigger, NukeTrigger</span>
+        </div>
+
+        <div class="theory-card">
+          <div class="theory-icon">🕳️</div>
+          <h3>2. Subterranean Excavators & Tunnelers</h3>
+          <p>Used by <em>Jackhammer, Ground Hog, Digger, Chasm, Strip Mine</em>. The projectile ignores early ground impact and enters an underground state where it steps through solid voxels, carving cylindrical air voids.</p>
+          <div class="formula-box">
+            <code>Terrain[x_i, y_i] = AIR   ∀ (x_i-x)² + (y_i-y)² ≤ R²</code>
+          </div>
+          <span class="theory-tag">Native Trigger: JackhammerTrigger, GroundHogTrigger</span>
+        </div>
+
+        <div class="theory-card">
+          <div class="theory-icon">⏳</div>
+          <h3>3. Additive Granular Dirt Dynamics</h3>
+          <p>Used by <em>Mud Pie, Dirt Slinger, Concrete, Pedestal</em>. Instead of destroying soil, hundreds of dirt granules are spawned with low restitution, cascading down slopes and settling until angle of repose is met.</p>
+          <div class="formula-box">
+            <code>if Terrain[x, y+1] == AIR ➔ y = y+1</code><br>
+            <code>else if Terrain[x ± 1, y+1] == AIR ➔ x = x ± 1</code>
+          </div>
+          <span class="theory-tag">Native Trigger: MudPieTrigger, DirtSlingerTrigger</span>
+        </div>
+
+        <div class="theory-card">
+          <div class="theory-icon">🎯</div>
+          <h3>4. Vector Steering & Proximity Seekers</h3>
+          <p>Used by <em>Heatseeker, Beehive, Laserbots, Homing Worm</em>. Autonomous projectiles compute a normalized target heading and apply a lateral steering force clamped by maximum turn rate.</p>
+          <div class="formula-box">
+            <code>F_steer = clamp((P_target - P)/||P_target - P|| · v_max - v, F_max)</code>
+          </div>
+          <span class="theory-tag">Native Trigger: HeatseekerTrigger, BeehiveTrigger</span>
+        </div>
+
+        <div class="theory-card">
+          <div class="theory-icon">⚡</div>
+          <h3>5. Instant Hitscan & Slicing Lasers</h3>
+          <p>Used by <em>Railgun, Tachyon Beam, Space Laser, X-Ray Cannon</em>. Raymarches instantaneously along angle θ across all terrain pixels and tanks, calculating multi-layer penetration without parabolic drop.</p>
+          <div class="formula-box">
+            <code>R(s) = P_barrel + s · (cos θ, -sin θ),   s ∈ [0, D_max]</code>
+          </div>
+          <span class="theory-tag">Native Trigger: RailgunTrigger, SpaceLaserTrigger</span>
+        </div>
+
+        <div class="theory-card">
+          <div class="theory-icon">🌀</div>
+          <h3>6. Gravitational Singularities & Spacetime Wells</h3>
+          <p>Used by <em>Gravity Well, Quantum Cube, Funnel, Vortex</em>. Spawns an attractor anchor that exerts an inverse-square inward force on all concurrent projectiles, debris, and neighboring tanks.</p>
+          <div class="formula-box">
+            <code>a_gravity = (G · M / (||r||² + ε)) · (r / ||r||)</code>
+          </div>
+          <span class="theory-tag">Native Trigger: GravityWellTrigger, QuantumCubeTrigger</span>
+        </div>
+
+        <div class="theory-card">
+          <div class="theory-icon">🛡️</div>
+          <h3>7. Kinetic Elastic Reflections & Rollers</h3>
+          <p>Used by <em>Bouncy Wall, Golden Bullet, Cruiser, Wrecker</em>. Computes the surface normal n at the impact point and inverts the normal velocity component with restitution e.</p>
+          <div class="formula-box">
+            <code>v_reflected = v - (1 + e)(v · n)n</code>
+          </div>
+          <span class="theory-tag">Native Trigger: BouncyWallTrigger, GoldenBulletTrigger</span>
+        </div>
+
+        <div class="theory-card">
+          <div class="theory-icon">🚀</div>
+          <h3>8. Tank Kinematic Propulsion & Escape Jets</h3>
+          <p>Used by <em>Jump Jets, Blast Off, Danger Rope, Evac</em>. Directly overrides the tank chassis velocity, applying instantaneous thrust impulses to relocate tanks out of deep pits onto mountain crests.</p>
+          <div class="formula-box">
+            <code>v_tank = (Power / 4) · (cos θ, -sin θ)</code>
+          </div>
+          <span class="theory-tag">Native Trigger: JumpJetsTrigger, BlastOffTrigger</span>
+        </div>
+
+        <div class="theory-card">
+          <div class="theory-icon">🧪</div>
+          <h3>9. Viscous Corrosives & Lingering Hazards</h3>
+          <p>Used by <em>Acid Bombs, Bonfire, Gamma Goo, Napalm, Lava Flow</em>. Spawns persistent liquid entities that stick to terrain and continuously execute damage ticks and erosion cycles over multiple game turns.</p>
+          <div class="formula-box">
+            <code>Damage_total = Σ DamageTick(t) · [dist(Tank, Fluid) < R_pool]</code>
+          </div>
+          <span class="theory-tag">Native Trigger: AcidBombsTrigger, GammaGooTrigger</span>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-content">
+      <p><strong>Pocket Tanks HD 3.0.0 Weapon Physics Lab</strong> — Accurate recreation based on native <code>libengine.so</code> disassemblies and decrypted <code>.wep</code> catalogs.</p>
+      <p class="subtext">41 Packs | 407 Total Weapons | Complete Reverse Engineered Physics Engine</p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

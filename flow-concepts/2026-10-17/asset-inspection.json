@@ -1,0 +1,245 @@
+{
+  "sourceFormat": "JPEG",
+  "size": [
+    1024,
+    1024
+  ],
+  "mode": "RGB",
+  "hasAlpha": false,
+  "grid": [
+    4,
+    4
+  ],
+  "cell": [
+    256,
+    256
+  ],
+  "brightnessThreshold": 40,
+  "frames": [
+    {
+      "frame": 1,
+      "brightBounds": [
+        115,
+        110,
+        142,
+        144
+      ],
+      "weightedCenter": [
+        128.1,
+        128.0
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 2,
+      "brightBounds": [
+        88,
+        86,
+        167,
+        166
+      ],
+      "weightedCenter": [
+        128.4,
+        127.8
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 3,
+      "brightBounds": [
+        66,
+        55,
+        187,
+        186
+      ],
+      "weightedCenter": [
+        125.0,
+        126.8
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 4,
+      "brightBounds": [
+        38,
+        43,
+        215,
+        212
+      ],
+      "weightedCenter": [
+        127.2,
+        126.2
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 5,
+      "brightBounds": [
+        17,
+        19,
+        239,
+        231
+      ],
+      "weightedCenter": [
+        130.2,
+        125.3
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 6,
+      "brightBounds": [
+        27,
+        28,
+        222,
+        220
+      ],
+      "weightedCenter": [
+        129.9,
+        124.0
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 7,
+      "brightBounds": [
+        20,
+        21,
+        233,
+        223
+      ],
+      "weightedCenter": [
+        130.2,
+        122.5
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 8,
+      "brightBounds": [
+        11,
+        5,
+        247,
+        255
+      ],
+      "weightedCenter": [
+        128.4,
+        120.7
+      ],
+      "touchesCellEdge": true
+    },
+    {
+      "frame": 9,
+      "brightBounds": [
+        22,
+        10,
+        235,
+        227
+      ],
+      "weightedCenter": [
+        141.2,
+        96.0
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 10,
+      "brightBounds": [
+        38,
+        19,
+        228,
+        235
+      ],
+      "weightedCenter": [
+        144.4,
+        98.4
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 11,
+      "brightBounds": [
+        30,
+        20,
+        230,
+        233
+      ],
+      "weightedCenter": [
+        141.7,
+        99.2
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 12,
+      "brightBounds": [
+        53,
+        28,
+        224,
+        221
+      ],
+      "weightedCenter": [
+        145.3,
+        99.6
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 13,
+      "brightBounds": [
+        46,
+        23,
+        216,
+        208
+      ],
+      "weightedCenter": [
+        144.9,
+        86.7
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 14,
+      "brightBounds": [
+        51,
+        27,
+        211,
+        200
+      ],
+      "weightedCenter": [
+        156.5,
+        78.3
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 15,
+      "brightBounds": [
+        64,
+        69,
+        204,
+        214
+      ],
+      "weightedCenter": [
+        131.7,
+        121.5
+      ],
+      "touchesCellEdge": false
+    },
+    {
+      "frame": 16,
+      "brightBounds": [
+        130,
+        130,
+        177,
+        177
+      ],
+      "weightedCenter": [
+        153.5,
+        153.5
+      ],
+      "touchesCellEdge": false
+    }
+  ],
+  "visibleMark": "Flow star visible in final cell and background lower right"
+}

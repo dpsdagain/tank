@@ -1,0 +1,298 @@
+[
+  {
+    "key": "heatseeker",
+    "file": "heatseeker.png",
+    "size": [
+      1855,
+      848
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 1239259,
+    "partialPixels": 333690,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "rect": [
+          82,
+          30,
+          1727,
+          794
+        ],
+        "body": [
+          378,
+          181,
+          1109,
+          478
+        ]
+      }
+    ],
+    "sha256": "a920fb050929f6f081de250e41fc514db03c733ba176d45814ebf7b3f0740208",
+    "bytes": 538071
+  },
+  {
+    "key": "diggerBody",
+    "file": "digger-parts.png",
+    "size": [
+      1774,
+      887
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 1199074,
+    "partialPixels": 373252,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "rect": [
+          82,
+          176,
+          773,
+          661
+        ],
+        "body": [
+          186,
+          278,
+          664,
+          363
+        ]
+      },
+      {
+        "rect": [
+          904,
+          55,
+          822,
+          808
+        ],
+        "body": [
+          1015,
+          247,
+          707,
+          422
+        ]
+      }
+    ],
+    "sha256": "b2e831e7fe1d0b00d341f71edf44011ed00c4e935dc91fc78b7afd2635d1c7aa",
+    "bytes": 669111
+  },
+  {
+    "key": "diggerTip",
+    "file": "digger-tip-4.png",
+    "size": [
+      1312,
+      1199
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 1100321,
+    "partialPixels": 472294,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "rect": [
+          49,
+          39,
+          607,
+          560
+        ],
+        "body": [
+          72,
+          219,
+          574,
+          321
+        ]
+      },
+      {
+        "rect": [
+          656,
+          54,
+          632,
+          545
+        ],
+        "body": [
+          687,
+          243,
+          573,
+          280
+        ]
+      },
+      {
+        "rect": [
+          0,
+          599,
+          656,
+          600
+        ],
+        "body": [
+          73,
+          768,
+          573,
+          299
+        ]
+      },
+      {
+        "rect": [
+          656,
+          599,
+          620,
+          600
+        ],
+        "body": [
+          687,
+          763,
+          573,
+          306
+        ]
+      }
+    ],
+    "sha256": "0bdfaa227d0214363aec034c95411953c299f9b57101f4a4cdec0eb12cb78b83",
+    "bytes": 953385
+  },
+  {
+    "key": "beehive",
+    "file": "beehive.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 1209935,
+    "partialPixels": 362929,
+    "alphaRange": [
+      0,
+      254
+    ],
+    "frames": [
+      {
+        "rect": [
+          49,
+          25,
+          1465,
+          975
+        ],
+        "body": [
+          357,
+          228,
+          824,
+          568
+        ]
+      }
+    ],
+    "sha256": "afa634909427e94508d76a19f7452894d6478a1d96582ad73381f2cf5bb27c31",
+    "bytes": 1273503
+  },
+  {
+    "key": "comet",
+    "file": "comet.png",
+    "size": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 1319447,
+    "partialPixels": 253417,
+    "alphaRange": [
+      0,
+      254
+    ],
+    "frames": [
+      {
+        "rect": [
+          79,
+          53,
+          1423,
+          931
+        ],
+        "body": [
+          401,
+          254,
+          738,
+          518
+        ]
+      }
+    ],
+    "sha256": "4cf27473eed696d8a6250564d092a848d2452f99349c4bcf3a204b609eab2552",
+    "bytes": 1195164
+  },
+  {
+    "key": "fireball",
+    "file": "fireball-4.png",
+    "size": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA",
+    "transparentPixels": 1150809,
+    "partialPixels": 420829,
+    "alphaRange": [
+      0,
+      255
+    ],
+    "frames": [
+      {
+        "rect": [
+          23,
+          23,
+          604,
+          604
+        ],
+        "body": [
+          57,
+          237,
+          519,
+          283
+        ]
+      },
+      {
+        "rect": [
+          627,
+          35,
+          613,
+          592
+        ],
+        "body": [
+          661,
+          221,
+          526,
+          309
+        ]
+      },
+      {
+        "rect": [
+          0,
+          627,
+          627,
+          627
+        ],
+        "body": [
+          42,
+          755,
+          552,
+          293
+        ]
+      },
+      {
+        "rect": [
+          627,
+          627,
+          613,
+          627
+        ],
+        "body": [
+          669,
+          729,
+          532,
+          320
+        ]
+      }
+    ],
+    "sha256": "2769077f566f4714c83064a5540f87fe4ff20060f40604295d5cc8d3c474daa7",
+    "bytes": 767460
+  }
+]

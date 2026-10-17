@@ -1,0 +1,13 @@
+{
+  "name": "pocket-tanks-browser",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A self-contained browser artillery game based on the supplied Pocket Tanks APK assets.",
+  "scripts": {
+    "start": "node server.cjs",
+    "dev": "node server.cjs",
+    "test": "node --test tests/game.test.cjs tests/effects.test.cjs tests/projectiles.test.cjs",
+    "check": "node --check game-core.js && node --check browser-game.js && node --check weapons.js && node --check projectile-art.js && node --check weapon-fx.js && node --check native-effects.js && node --check flight-preview.js && node --check assets/projectiles/painted/manifest.js"
+  },
+  "engines": { "node": ">=18" }
+}
