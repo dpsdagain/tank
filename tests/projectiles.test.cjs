@@ -2,6 +2,7 @@ const {test}=require('node:test');
 const assert=require('node:assert/strict');
 const C=require('../game-core.js');
 require('../weapons.js');require('../native-effects.js');
+require('../assets/vfx/native-impact-recipes.js');require('../assets/vfx/impact-art.js');
 const painted=require('../assets/projectiles/painted/manifest.js');
 const ProjectileArt=require('../projectile-art.js');
 const WeaponEffects=require('../weapon-fx.js');

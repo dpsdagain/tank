@@ -1,6 +1,13 @@
 """Package only the standalone browser game; no APKs or signing files."""
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
+import argparse
+
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('--output', default='pocket-tanks-browser.zip', help='ZIP filename inside dist/')
+args = parser.parse_args()
+if Path(args.output).name != args.output or not args.output.lower().endswith('.zip'):
+    parser.error('--output must be a ZIP filename, without a directory')
 
 root = Path(__file__).resolve().parents[1]
 out = root / 'dist'
@@ -10,9 +17,9 @@ files = [root / name for name in ('index.html', 'index.css', 'browser-game.js',
     'ASSET_NOTES.md', 'Start-Game.cmd', 'native-effects.js', 'projectile-art.js', 'weapon-fx.js',
     'effects-preview.html', 'flight-preview.html', 'flight-preview.js')]
 files.extend(sorted((root / 'assets').rglob('*')))
-files.extend(sorted((root / 'tests').glob('*.cjs')))
-with ZipFile(out / 'pocket-tanks-browser.zip', 'w', ZIP_DEFLATED) as archive:
+files.extend(sorted((root / 'tests').rglob('*')))
+with ZipFile(out / args.output, 'w', ZIP_DEFLATED) as archive:
     for file in files:
         if file.is_file():
             archive.write(file, file.relative_to(root).as_posix())
-print(out / 'pocket-tanks-browser.zip')
+print(out / args.output)

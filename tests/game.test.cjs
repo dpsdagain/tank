@@ -12,13 +12,32 @@ function finishShot(battle) {
   assert.ok(['aim', 'over'].includes(battle.phase));
 }
 
-test('every shipped weapon icon and description exists', () => {
+test('every shipped fallback weapon icon and description exists', () => {
   assert.equal(weapons.length, 36);
   assert.equal(new Set(weapons.map(w => w.id)).size, 36);
   for (const w of weapons) {
     assert.ok(w.description, w.name);
     assert.ok(fs.existsSync(path.join(__dirname, '../assets/icons', w.icon + '.png')), w.icon);
   }
+});
+
+test('all 36 painted badges have distinct source windows inside unchanged Flow boards', () => {
+  const icons = require('../assets/icons/painted/catalog.js');
+  assert.deepEqual(Object.keys(icons.catalog).sort(), weapons.map(w => w.id).sort());
+  const windows = new Set();
+  for (const w of weapons) {
+    const entry = icons.catalog[w.id], sheet = icons.sheets[entry.sheet], [x,y,width,height] = entry.rect;
+    assert.ok(x>=0 && y>=0 && width>0 && height>0 && x+width<=sheet.size[0] && y+height<=sheet.size[1]);
+    windows.add(`${entry.sheet}:${entry.rect.join(',')}`);
+    const markup = icons.html(w);
+    assert.ok(markup.includes(`data-weapon-icon="${w.id}"`) && markup.includes('aria-hidden="true"'));
+    assert.ok(markup.includes(sheet.src) && markup.includes(`assets/icons/${w.icon}.png`));
+  }
+  assert.equal(windows.size,36);
+  icons.sheets.forEach(sheet => {
+    const data=fs.readFileSync(path.join(__dirname,'..',sheet.src));
+    assert.equal(require('node:crypto').createHash('sha256').update(data).digest('hex'),sheet.sha256,'Flow source pixels remain unchanged');
+  });
 });
 
 test('terrain generation is repeatable, craters remove material, dirt adds it', () => {

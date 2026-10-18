@@ -23,11 +23,13 @@ Then open **http://127.0.0.1:5173**. Node 18 or newer is sufficient; `npm instal
 - Optional weapon selection before a match, including a separate arsenal for each local player.
 - Destructible bitmap terrain, settling soil, dirt-building weapons, blast knockback and four landscapes.
 - Shells, spreads, bounces, rollers, digging blasts, tunneling explosions, fire, homing bees, airbursts, lasers, orbital strikes, nuclear clouds, meteor showers and jump jets.
-- Original weapon icons, sound effects, music and tank artwork recovered from the supplied assets.
+- Original sound effects, music and tank artwork recovered from the supplied assets; original weapon icons retained as loading/error fallbacks.
+- Painted Flow badges for all 36 weapons, shared across the arsenal, guide, loadout picker and preview pages, with distinct colorful silhouettes at desktop and phone sizes.
 - Vivid native palette-band blasts, timed nuclear layers, 126 recovered animation frames, glowing trails, fire, impact debris and original weapon-specific impact sounds.
 - Flow-painted dusk scenery, warm layered soil and animated sculpted fireballs, with the existing weapon-specific beams, nuclear plumes, debris and opaque smoke.
 - Recognizable projectile silhouettes and trails for all 36 weapons: spinning discs/wheels, piston hammers, drills, worms, winged bees, ice crystals, lava pods, distinct bombs, icy comets and living fireballs. Jump Jets puts blue-white thrusters on the airborne tank.
 - Painted transparent artwork for Heatseeker, Digger, Beehive, Comet and Fireball, adapted from the Flow concepts. Digger has a four-phase drill tip and Fireball has four flame poses; moving exhaust, icy trails and released bees remain animated.
+- Individual impact reactions informed by the APK scripts: native palette colors, shrapnel, drilling faces, soil splashes, tiny stings, electrical sparks, burning liquid and molten rock. The existing Nuke and Mega Nuke appearance is preserved.
 - Touch aiming, keyboard controls, pause, fullscreen, sound/music toggles and optional aim guide.
 - A local save at the start of each turn. Reloading during a shot restores the beginning of that turn. Browser storage availability varies in private mode and with `file://` pages.
 
@@ -55,7 +57,9 @@ This is a browser recreation, not an execution or translation of the native ARM 
 
 `game-core.js` owns the fixed-step physics, bitmap terrain, scoring, inventories and turn state. `browser-game.js` owns the battlefield, audio, input, computer turns and interface. `weapon-fx.js` renders weapon effects using recovered recipes and palette data in `native-effects.js`; `projectile-art.js` supplies the 36 flight identities, moving parts and trails. `weapons.js` contains the weapon catalog. The app works without a server because it uses ordinary scripts and local media, rather than module fetches.
 
-Open **http://127.0.0.1:5173/effects-preview.html** (or the local `effects-preview.html`) to watch the effects reel. Use **Hold impact** to inspect six weapon effects side by side.
+`assets/vfx/impact-art.js` supplies the individual impact presentation from the expanded native audit. The existing nuclear drawing path remains in `weapon-fx.js`.
+
+Open **http://127.0.0.1:5173/effects-preview.html** (or the local `effects-preview.html`) to inspect all 36 impact reactions. Search/filter, use **Hold impact**, and choose contact, burst, reaction, follow-up or aftermath. Each preview starts at contact and uses the production effects, actual secondary projectiles and destructible terrain. Only visible cards simulate and draw.
 
 Open **http://127.0.0.1:5173/flight-preview.html** to compare all 36 flight identities. Search/filter, hold a flight, switch between enlarged and game-size artwork, and inspect the secondary stages. The gallery uses illustrative paths with the production renderer; actual matches use the real physics. The weapon guide links to the flight gallery, which also links to the impact reel. Small game canvases enlarge projectile bodies for readability without changing collision geometry.
 
@@ -70,10 +74,14 @@ npm test
 npm run check
 ```
 
-The 19 tests cover deterministic terrain, progressive crater opening, wind-aware aiming, scoring, all 36 weapons resolving, complete matches, inventory consumption, movement, saves, native effect recipes, effect event identity, bounded particles, clean Flow frame selection and canvas-state restoration. Flight checks cover distinct silhouettes, left/right/vertical/zero velocity, secondary projectiles, reduced motion, phone readability scaling and all 36 real shots resolving through the integrated renderer. Painted artwork checks verify RGBA sources and hashes, source windows, velocity alignment, stable frame anchors, all four flame/drill poses, image-loading fallbacks and preservation of released bee artwork.
+The 24 tests cover deterministic terrain, progressive crater opening, wind-aware aiming, scoring, all 36 weapons resolving, complete matches, inventory consumption, movement, saves, native recipes, effect identity, bounded particles and canvas-state restoration. Flight checks cover distinct silhouettes, every direction, secondary projectiles, reduced motion, phone scaling and all 36 real shots resolving through the renderer. Painted artwork and icon checks cover source hashes, frames, all 36 badge windows and loading fallbacks. Impact checks cover the expanded source audit, all 36 drawing signatures, native shrapnel/terrain/child effects, airburst context and unchanged nuclear drawing commands at six ages for each Nuke.
 
 ## Assets and packaging
 
 See `ASSET_NOTES.md` for provenance. `python tools/export_assets.py` regenerates the base asset set and `python tools/export_native_fx.py` regenerates the recovered visual recipes, animation atlases and impact sounds (requires Pillow and the supplied source dump). `python tools/package_game.py` creates `dist/pocket-tanks-browser.zip`, containing only the playable browser build, effects reel, server and documentation.
+
+`python tools/inspect_native_impacts.py` follows all reachable native impact block types for the 36 weapons, including shrapnel, cruisers, fire and terrain tools. It writes the complete audit in `qa/` and the compact runtime evidence in `assets/vfx/native-impact-recipes.js`. `qa/IMPACT_REACTIONS.md` records how those cues map to the browser presentation. Native command counts, damage and movement are still interpreted by the independent browser engine, not executed as native code.
+
+The impact revision is also packaged as `dist/pocket-tanks-browser-impact-update.zip`. Rebuild it with `python tools/package_game.py --output pocket-tanks-browser-impact-update.zip`.
 
 The earlier simulator is preserved in `legacy-simulator/`. Original APK/decompiled inputs remain in place.

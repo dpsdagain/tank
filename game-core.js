@@ -206,14 +206,14 @@
       this.emit('beam', { x: origin.x, y: origin.y, ex: end.x, ey: end.y, color: weapon.color });
       this.schedule(.6, () => {});
     }
-    explode(x, y, radius, damage, owner, color = '#ffb65d', kick = true) {
+    explode(x, y, radius, damage, owner, color = '#ffb65d', kick = true, impact = {}) {
       if (x < -radius || x > W + radius) return;
       if (this.phase === 'flight') {
         // ERASE_DIRECTION: EXPLOSION_OUT — the crater opens with the expanding blast.
         for (let step = 1; step <= 6; step++) this.schedule(step * .035, () => this.terrain.circle(x, y, radius * step / 6));
       } else this.terrain.circle(x, y, radius);
       if (radius >= 75) this.visualHold = Math.max(this.visualHold || 0, this.time + 1.45);
-      this.emit('explosion', { x, y, radius, color });
+      this.emit('explosion', { x, y, radius, color, ...impact });
       for (const tank of this.tanks) {
         const distance = Math.max(0, Math.hypot(tank.x - x, tank.y - 11 - y) - 13);
         if (distance > radius) continue;
@@ -229,7 +229,7 @@
     }
     impact(p) {
       const { x, y, radius: r, damage: d, owner, color, weapon } = p;
-      if (p.child) { this.explode(x, y, r, d, owner, color); return; }
+      if (p.child) { this.explode(x, y, r, d, owner, color, true, {child:true,vx:p.vx,vy:p.vy}); return; }
       switch (weapon.behavior) {
         case 'dirt':
           this.terrain.circle(x, y - r * .35, r, true);
@@ -326,7 +326,7 @@
         } else advance(p, dt, this.wind);
         if (p.weapon.behavior === 'burst' && !p.child && p.vy >= 0) {
           for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2; this.schedule(i * .005, () => this.spawn({ ...p, x: p.x, y: p.y, vx: Math.cos(a) * 220, vy: Math.sin(a) * 220, child: true, age: 0, trail: [] })); }
-          this.emit('explosion', { x: p.x, y: p.y, radius: 22, color: p.color }); continue;
+          this.emit('explosion', { x: p.x, y: p.y, radius: 22, color: p.color, airburst:true }); continue;
         }
         if (Math.floor(p.age / dt) % 3 === 0) { p.trail.push({ x: p.x, y: p.y }); if (p.trail.length > 24) p.trail.shift(); }
         const hitTank = this.tanks.some((t, i) => (i !== p.owner || p.age > .35) && Math.hypot(t.x - p.x, t.y - 12 - p.y) < 17);

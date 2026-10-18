@@ -4,6 +4,8 @@ const fs=require('node:fs');
 const path=require('node:path');
 const C=require('../game-core.js');
 require('../weapons.js');require('../native-effects.js');
+const impactRecipes=require('../assets/vfx/native-impact-recipes.js');
+const ImpactArt=require('../assets/vfx/impact-art.js');
 const WeaponEffects=require('../weapon-fx.js');
 const data=POCKET_NATIVE_FX;
 
@@ -56,7 +58,7 @@ test('Flow fire uses clean cells with screen compositing and restores canvas sta
     save(){stack.push([this.globalAlpha,this.globalCompositeOperation,this.imageSmoothingEnabled]);},
     restore(){[this.globalAlpha,this.globalCompositeOperation,this.imageSmoothingEnabled]=stack.pop();},
     translate(){},rotate(){},drawImage(image,...rect){calls.push({image,rect,blend:this.globalCompositeOperation,alpha:this.globalAlpha});}};
-  fx.event({type:'explosion',weaponId:'big_shot',x:500,y:350,radius:72});
+  fx.event({type:'explosion',weaponId:'nuke',x:500,y:350,radius:96});
   const blast=fx.effects.find(e=>e.kind==='blast');
   assert.equal(blast.flowImpact,true);
   for(let i=0;i<=60;i++){blast.age=i/60;assert.equal(fx.drawFlowBlast(ctx,blast),true);}
@@ -77,6 +79,52 @@ test('Flow fire uses clean cells with screen compositing and restores canvas sta
   assert.equal(new WeaponEffects(data,{flowArt:false}).atlases.flowFire,undefined);
   for(const id of ['super_laser','lightning_strike','dirtball','digger']){
     fx.reset();fx.event({type:'explosion',weaponId:id,x:300,y:300,radius:40});
-    assert.equal(fx.effects.find(e=>e.kind==='blast').flowImpact,false,`${id} retains its own visual family`);
+    assert.equal(!!fx.effects.find(e=>e.kind==='weaponImpact'||e.kind==='blast').flowImpact,false,`${id} retains its own visual family`);
   }
+});
+
+test('impact audit follows native shrapnel, cruisers, terrain tools and child triggers',()=>{
+  assert.equal(Object.keys(impactRecipes).length,36);
+  for(const [id,kind] of [['sniper_rifle','SHRAPNEL'],['cannon_ball','SHRAPNEL'],['roller','CRUISER'],['napalm','FIRE'],['digger','DIRTMOVER'],['magic_wall','MAGICWALL']])assert.ok(impactRecipes[id].kinds.includes(kind),`${id} native command`);
+  assert.equal(impactRecipes.roller.explosions[0].color,93);
+  assert.equal(impactRecipes.heavy_roller.explosions[0].color,235);
+  assert.equal(impactRecipes.beehive.explosions[0].radius,3);
+  assert.equal(impactRecipes.pile_driver.explosions.length,6);
+  assert.equal(impactRecipes.digger.specials[0].LOW_COLOR,'100 100 255');
+  assert.equal(impactRecipes.napalm.specials[0].BURN_TIME,'3500');
+  const fx=new WeaponEffects(data);
+  assert.equal(fx.impacts.sound('sniper_rifle'),'expshort2.wav');
+  assert.equal(fx.impacts.sound('roller'),'expshort.wav');
+  assert.equal(fx.impacts.sound('nuke'),null,'nuclear sound stays on its existing path');
+});
+
+test('all 36 impact identities render finite geometry and restore canvas state',()=>{
+  const {canvasRecorder}=require('./render-fixtures.cjs'),signatures=new Set();
+  const oldRandom=Math.random;Math.random=()=>.5;
+  try{for(const weapon of POCKET_WEAPONS){
+    assert.ok(ImpactArt.catalog[weapon.id]);const fx=new WeaponEffects(data,{particleLimit:100});
+    fx.event({type:'explosion',weaponId:weapon.id,x:300,y:250,radius:C.stats(weapon).radius||24});
+    fx.event({type:'dirt',weaponId:weapon.id,x:300,y:250,radius:40});
+    fx.event({type:'beacon',weaponId:weapon.id,x:300,y:250});fx.event({type:'bounce',weaponId:weapon.id,x:300,y:250});
+    const r=canvasRecorder(),before={...r.state};
+    for(const age of [.08,.2,.4,.75])for(const effect of fx.effects)if(age<effect.life){effect.age=age;fx.drawEffect(r.ctx,effect);}
+    fx.drawParticles(r.ctx,false);assert.equal(r.stack.length,0);assert.deepEqual(r.state,before);
+    signatures.add(JSON.stringify(r.calls));assert.ok(fx.particles.length<=100);
+    if(weapon.behavior!=='nuke')assert.ok(!fx.effects.some(e=>e.kind==='blast'),'shared fireball must not override the weapon impact');
+  }}finally{Math.random=oldRandom;}
+  assert.equal(signatures.size,36,'sizes, colors, structures and reactions identify every shipped weapon');
+});
+
+test('Nuke and Mega Nuke preserve the existing drawing commands at six ages each',()=>{
+  const {nuclearFrames}=require('./render-fixtures.cjs');
+  assert.deepEqual(nuclearFrames(WeaponEffects,data),require('./fixtures/nuclear-render-baseline.json'));
+});
+
+test('airburst and child-hit context reaches the correct effects without changing damage rules',()=>{
+  const fx=new WeaponEffects(data),b=new C.Battle(POCKET_WEAPONS,{mode:'practice',terrain:'flat',seed:123});
+  b.select('pin_cushion');b.fire();const p=b.projectiles[0];p.child=true;p.x=760;p.y=b.terrain.ground(760);b.impact(p);
+  const event=b.events.find(e=>e.type==='explosion');assert.equal(event.child,true);assert.equal(event.weaponId,'pin_cushion');
+  fx.event(event);assert.equal(fx.effects[0].shape,'needles');assert.equal(fx.effects[0].recipe.radius,10);
+  fx.reset();fx.event({type:'explosion',weaponId:'pin_cushion',x:500,y:120,radius:22,airburst:true});assert.equal(fx.scorches.length,0);
+  fx.reset();fx.event({type:'beacon',weaponId:'beehive',x:500,y:200});assert.equal(fx.effects[0].kind,'hiveOpen');
 });

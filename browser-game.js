@@ -189,7 +189,7 @@
       if (e.type === 'bounce') sounds.play('bounce', .25);
       if (e.type === 'explosion') {
         const profile = POCKET_NATIVE_FX.profiles[e.weaponId];
-        const original = profile?.explosions?.find(stage => stage.sound && stage.sound !== 'NONE')?.sound;
+        const original = this.fx.impacts?.sound(e.weaponId) || profile?.explosions?.find(stage => stage.sound && stage.sound !== 'NONE')?.sound;
         const stem = original?.replaceAll('\\', '/').split('/').pop().replace(/\.[^.]+$/, '').toLowerCase();
         const sound = POCKET_NATIVE_FX.sounds.includes(stem) ? stem : e.radius > 75 ? 'exphuge' : e.radius < 25 ? 'expshort' : 'expmedium2';
         sounds.play(sound, C.clamp(e.radius / 100, .25, .75));
@@ -325,7 +325,7 @@
     $('inventory').innerHTML = all.map(id => {
       const w = weapons.find(w => w.id === id), used = !battle.practice && !tank.inventory.includes(id);
       if (!w) return '';
-      return `<button class="weapon-button ${tank.selected === id ? 'selected' : ''} ${used ? 'used' : ''}" data-weapon="${w.id}" aria-pressed="${tank.selected === id}" aria-label="${esc(w.name)}${used ? ', already fired' : ''}" ${used || isCPU || battle.phase !== 'aim' || paused ? 'disabled' : ''} title="${esc(descriptions[w.id])}"><img src="assets/icons/${w.icon}.png" alt=""><span>${esc(w.name)}<small>${used ? 'SPENT' : w.category.toUpperCase()}</small></span></button>`;
+      return `<button class="weapon-button ${tank.selected === id ? 'selected' : ''} ${used ? 'used' : ''}" data-weapon="${w.id}" aria-pressed="${tank.selected === id}" aria-label="${esc(w.name)}${used ? ', already fired' : ''}" ${used || isCPU || battle.phase !== 'aim' || paused ? 'disabled' : ''} title="${esc(descriptions[w.id])}">${WeaponIcons.html(w)}<span>${esc(w.name)}<small>${used ? 'SPENT' : w.category.toUpperCase()}</small></span></button>`;
     }).join('');
     const w = battle.weapon, stat = C.stats(w);
     $('selectedName').textContent = w.name; $('selectedCategory').textContent = `${w.category.toUpperCase()} / ${w.pack.toUpperCase()}`;
@@ -413,7 +413,7 @@
     $('catalogGrid').innerHTML = filtered.map(w => {
       const chosen = drafting ? draftPicks[draftSide].includes(w.id) : battle.tank.selected === w.id;
       const available = battle.practice || battle.tank.inventory.includes(w.id);
-      return `<button class="catalog-card ${chosen ? 'is-picked' : ''}" data-catalog-weapon="${w.id}" aria-pressed="${chosen}"><span class="catalog-card-head"><img src="assets/icons/${w.icon}.png" alt=""><span><strong>${esc(w.name)}</strong><small>${w.category.toUpperCase()}</small></span></span><p>${esc(descriptions[w.id])}</p><span class="availability">${drafting ? chosen ? '✓ SELECTED' : 'ADD TO ARSENAL' : battle.practice ? 'TRY THIS WEAPON ↗' : available ? 'IN YOUR LOADOUT · EQUIP ↗' : 'AVAILABLE IN TARGET PRACTICE'}</span></button>`;
+      return `<button class="catalog-card ${chosen ? 'is-picked' : ''}" data-catalog-weapon="${w.id}" aria-pressed="${chosen}"><span class="catalog-card-head">${WeaponIcons.html(w)}<span><strong>${esc(w.name)}</strong><small>${w.category.toUpperCase()}</small></span></span><p>${esc(descriptions[w.id])}</p><span class="availability">${drafting ? chosen ? '✓ SELECTED' : 'ADD TO ARSENAL' : battle.practice ? 'TRY THIS WEAPON ↗' : available ? 'IN YOUR LOADOUT · EQUIP ↗' : 'AVAILABLE IN TARGET PRACTICE'}</span></button>`;
     }).join('') || '<p class="empty-catalog">No weapons found. Try another name or type.</p>';
     if (drafting) {
       $('draftCount').textContent = `${draftPicks[draftSide].length} / ${pendingOptions.rounds} weapons selected`;

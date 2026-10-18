@@ -10,7 +10,7 @@
   const cards = POCKET_WEAPONS.map((weapon, index) => {
     const section = document.createElement('section'), style = ProjectileArt.catalog[weapon.id];
     section.className = 'flight-card'; section.dataset.weapon = weapon.id;
-    section.innerHTML = `<canvas width="600" height="240" role="img" aria-label="${weapon.name} flight animation"></canvas><div class="flight-caption"><img src="assets/icons/${weapon.icon}.png" alt=""><div><h2>${weapon.name}</h2><p>${style.label}</p></div><span class="flight-number">${String(index + 1).padStart(2, '0')}</span></div>`;
+    section.innerHTML = `<canvas width="600" height="240" role="img" aria-label="${weapon.name} flight animation"></canvas><div class="flight-caption">${WeaponIcons.html(weapon)}<div><h2>${weapon.name}</h2><p>${style.label}</p></div><span class="flight-number">${String(index + 1).padStart(2, '0')}</span></div>`;
     $('flightGrid').append(section);
     return { weapon, section, ctx: section.querySelector('canvas').getContext('2d'), visible: index < 9, shown: true };
   });

@@ -34,6 +34,7 @@
     constructor(data, options = {}) {
       this.data = data; this.reducedMotion = !!options.reducedMotion;
       this.flight = root.ProjectileArt ? new root.ProjectileArt(options) : null;
+      this.impacts = root.WeaponImpactArt ? new root.WeaponImpactArt(this) : null;
       this.flowArt = options.flowArt !== false;
       this.atlases = { ...data.atlases, ...(this.flowArt ? { flowFire: FLOW_FIRE } : {}) };
       this.particleLimit = options.particleLimit || 1100;
@@ -74,6 +75,7 @@
     }
     color(id, bullet = false) {
       const p = this.profile(id);
+      if (!bullet && p.behavior !== 'nuke') { const impact = this.impacts?.color(id); if (impact) return impact; }
       const index = bullet ? p.bulletColor : p.explosions?.[0]?.color ?? p.impactColor;
       if (Number.isFinite(index) && index >= 16 && this.data.palette[index]) return this.data.palette[index];
       return FALLBACK[p.behavior] || '#ff572e';
@@ -110,6 +112,7 @@
       const id = event.weaponId || event.weapon?.id || 'single_shot', profile = this.profile(id);
       const color = this.color(id), behavior = profile.behavior;
       const e = { ...event, id, behavior, color, age: 0, seed: Math.random() * 20 };
+      if (this.impacts?.event(e, event)) return;
       switch (event.type) {
         case 'fire':
           this.effects.push({ ...e, kind: 'muzzle', radius: 31, life: .22 });
@@ -230,6 +233,8 @@
           if (this.textures.smoke) ctx.drawImage(this.textures.smoke, p.x - p.size, p.y - p.size, p.size * 2, p.size * 2);
           else disk(ctx, p.x, p.y, p.size * .6, '#292135');
           this.sprite(ctx,'smoke',progress*8,p.x,p.y,p.size*1.5,p.size*1.5,p.rotation,.2);
+        } else if (this.impacts?.drawParticle(ctx, p, progress)) {
+          // Source-specific chips, soil clods and metal streaks have their own shapes.
         } else if (p.kind === 'debris') {
           ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation); ctx.fillStyle = p.color; ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * .7); ctx.restore();
         } else {
@@ -310,6 +315,7 @@
     drawEffect(ctx, e) {
       const age = e.age, t = age / e.life;
       ctx.save();
+      if (this.impacts?.draw(ctx, e)) { ctx.restore(); return; }
       if (e.kind === 'blast') {
         this.glow(ctx,e.x,e.y,e.radius*2.4,e.flowImpact?'#ff930f':e.color,clamp((e.life-age)*.6,0,e.flowImpact ? .23 : .5));
         this.drawBlast(ctx, e);
