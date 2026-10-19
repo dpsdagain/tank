@@ -32,6 +32,7 @@ Then open **http://127.0.0.1:5173**. Node 18 or newer is sufficient; `npm instal
 - Individual impact reactions informed by the APK scripts: native palette colors, shrapnel, drilling faces, soil splashes, tiny stings, electrical sparks, burning liquid and molten rock. The existing Nuke and Mega Nuke appearance is preserved.
 - Touch aiming, keyboard controls, pause, fullscreen, sound/music toggles and optional aim guide.
 - A local save at the start of each turn. Reloading during a shot restores the beginning of that turn. Browser storage availability varies in private mode and with `file://` pages.
+- A rebuilt game shell: compact match bar, one glass HUD language over the battlefield, a 10 px minimum type size, 20 px slider thumbs, 1–9 weapon shortcut badges, a **FIRE** button that shows the weapon it will launch, and a battlefield that keeps its proportions on every screen instead of squashing on phones. See `qa/UI_UX_OVERHAUL.md`.
 
 ## Controls
 
@@ -40,7 +41,7 @@ Then open **http://127.0.0.1:5173**. Node 18 or newer is sufficient; `npm instal
 | Aim | Drag away from your tank, or use the angle slider |
 | Angle | Left / right arrows (hold Shift for larger steps) |
 | Power | Up / down arrows (hold Shift for larger steps) |
-| Fire | Space or the orange fire button |
+| Fire | Space or the fire button (it shows the loaded weapon) |
 | Move | A / D; four moves per tank per match |
 | Select loadout slot | 1–9, or click a weapon |
 | Aim guide | G |
@@ -81,6 +82,8 @@ The 24 tests cover deterministic terrain, progressive crater opening, wind-aware
 See `ASSET_NOTES.md` for provenance. `python tools/export_assets.py` regenerates the base asset set and `python tools/export_native_fx.py` regenerates the recovered visual recipes, animation atlases and impact sounds (requires Pillow and the supplied source dump). `python tools/package_game.py` creates `dist/pocket-tanks-browser.zip`, containing only the playable browser build, effects reel, server and documentation.
 
 `python tools/inspect_native_impacts.py` follows all reachable native impact block types for the 36 weapons, including shrapnel, cruisers, fire and terrain tools. It writes the complete audit in `qa/` and the compact runtime evidence in `assets/vfx/native-impact-recipes.js`. `qa/IMPACT_REACTIONS.md` records how those cues map to the browser presentation. Native command counts, damage and movement are still interpreted by the independent browser engine, not executed as native code.
+
+`node tools/inspect.cjs <url> <width> <height> <png> <script.js>` drives headless Chrome over the DevTools protocol. It reports console errors, evaluates a script in the page and captures a clipped region, which is how the responsive layout and the canvas HUD were checked. `qa/UI_UX_OVERHAUL.md` records what changed and why.
 
 The impact revision is also packaged as `dist/pocket-tanks-browser-impact-update.zip`. Rebuild it with `python tools/package_game.py --output pocket-tanks-browser-impact-update.zip`.
 

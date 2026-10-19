@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#171b17">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><meta name="theme-color" content="#12160f">
   <meta name="description" content="Two tanks. One landscape. Play Pocket Tanks in your browser with destructible terrain, 36 weapons, a computer opponent and local two-player battles.">
   <title>Pocket Tanks — Browser Edition</title><link rel="icon" href="assets/icons/ico_singleshot.png"><link rel="stylesheet" href="index.css">
   <script src="weapons.js" defer></script><script src="assets/icons/painted/catalog.js" defer></script><script src="native-effects.js" defer></script><script src="game-core.js" defer></script><script src="assets/projectiles/painted/manifest.js" defer></script><script src="projectile-art.js" defer></script><script src="assets/vfx/native-impact-recipes.js" defer></script><script src="assets/vfx/impact-art.js" defer></script><script src="weapon-fx.js" defer></script><script src="browser-game.js" defer></script>
@@ -26,14 +26,23 @@
     <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L20 5"/></symbol>
     <symbol id="i-box" viewBox="0 0 24 24"><path d="m12 3 9 5v9l-9 5-9-5V8ZM3 8l9 5 9-5m-9 5v9m-5-17 10 5"/></symbol>
     <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 21V4m0 0h11l-2 3 2 3H5"/></symbol>
   </svg>
   <header class="site-header">
-    <a class="brand" href="./" aria-label="Pocket Tanks home"><span class="brand-icon"><svg><use href="#i-tank"/></svg></span><span class="brand-wordmark">POCKET<span>TANKS<span class="brand-dot">®</span></span></span><span class="edition">BROWSER<br>EDITION</span></a>
+    <a class="brand" href="./" aria-label="Pocket Tanks home"><span class="brand-icon"><svg><use href="#i-tank"/></svg></span><span class="brand-wordmark">POCKET<span>TANKS<span class="brand-dot">®</span></span></span><span class="edition">BROWSER EDITION</span></a>
     <nav class="main-nav" aria-label="Game modes"><button class="nav-mode active" data-mode="cpu">Battle <span class="nav-dot"></span></button><button class="nav-mode" data-mode="practice">Target practice</button><button class="nav-mode" data-mode="local">Two players</button></nav>
     <div class="header-actions"><button class="icon-button" id="helpBtn" aria-label="How to play" title="How to play (?)"><svg><use href="#i-help"/></svg></button><button class="icon-button" id="soundBtn" aria-label="Mute sound" title="Sound (M)" aria-pressed="true"><svg><use href="#i-sound"/></svg></button><span class="header-divider"></span><button class="button button-light new-match" id="newMatchBtn"><svg><use href="#i-plus"/></svg> New match</button></div>
   </header>
   <main class="page" id="gameApp">
-    <section class="page-intro" aria-label="Match overview"><div><div class="eyebrow"><span class="status-dot"></span> THE CLASSIC, RELOADED</div><h1>A little angle. <span>A lot of chaos.</span></h1></div><div class="match-meta"><span id="modeLabel">YOU VS. COMPUTER</span><span class="meta-divider">/</span><span id="roundsLabel">10 VOLLEYS</span><button class="text-button" id="settingsBtn" title="Match settings">Change <svg><use href="#i-chevron"/></svg></button></div></section>
+    <section class="match-bar" aria-label="Match overview">
+      <h1 class="match-title">A little angle. <span>A lot of chaos.</span></h1>
+      <ul class="match-chips">
+        <li class="match-chip chip-mode"><span class="chip-dot"></span><span id="modeLabel">YOU VS. COMPUTER</span></li>
+        <li class="match-chip"><svg><use href="#i-flag"/></svg><span id="roundsLabel">10 VOLLEYS</span></li>
+        <li class="match-chip chip-rival"><svg id="rivalIcon"><use href="#i-bolt"/></svg><span id="rivalLabel">RANGER · NORMAL</span></li>
+      </ul>
+      <button class="text-button change-setup" id="settingsBtn" title="Match settings" aria-label="Change match setup">Change setup <svg><use href="#i-chevron"/></svg></button>
+    </section>
     <div class="game-layout">
       <section class="battle-station" aria-label="Battlefield and firing controls">
         <div class="battlefield" id="battlefield">
@@ -50,22 +59,51 @@
           <div class="pause-screen" id="pauseScreen" hidden><span class="eyebrow">TAKE YOUR TIME</span><h2>Battle paused.</h2><button class="button button-lime" id="resumeBtn">Resume battle <svg><use href="#i-arrow"/></svg></button></div>
         </div>
         <div class="firing-console">
-          <div class="aim-control"><div class="control-caption"><span><svg><use href="#i-angle"/></svg> ANGLE</span><output id="angleOutput" for="angleInput">45<span>°</span></output></div><input id="angleInput" type="range" min="0" max="180" value="45" aria-label="Firing angle"><div class="range-ticks"><span>0°</span><span>90°</span><span>180°</span></div></div>
-          <div class="power-control"><div class="control-caption"><span><svg><use href="#i-bolt"/></svg> POWER</span><output id="powerOutput" for="powerInput">68<span>%</span></output></div><input id="powerInput" type="range" min="1" max="100" value="68" aria-label="Firing power"><div class="range-ticks"><span>GENTLE</span><span>ALL IN</span></div></div>
-          <button class="fire-button" id="fireBtn"><svg><use href="#i-cross"/></svg><span id="fireLabel">FIRE SHOT</span><kbd>SPACE</kbd></button>
+          <div class="aim-control">
+            <div class="control-caption"><span class="control-label"><svg><use href="#i-angle"/></svg> Angle</span><output id="angleOutput" for="angleInput">45<span>°</span></output></div>
+            <input id="angleInput" type="range" min="0" max="180" value="45" aria-label="Firing angle">
+            <div class="range-ticks"><span>0°</span><span>45°</span><span>90°</span><span>135°</span><span>180°</span></div>
+          </div>
+          <div class="power-control">
+            <div class="control-caption"><span class="control-label"><svg><use href="#i-bolt"/></svg> Power</span><output id="powerOutput" for="powerInput">68<span>%</span></output></div>
+            <input id="powerInput" type="range" min="1" max="100" value="68" aria-label="Firing power">
+            <div class="range-ticks"><span>Gentle</span><span>Medium</span><span>All in</span></div>
+          </div>
+          <button class="fire-button" id="fireBtn">
+            <span class="fire-weapon" id="fireWeapon" aria-hidden="true"></span>
+            <span class="fire-copy"><strong id="fireLabel">FIRE SHOT</strong><small id="fireSub">Single Shot</small></span>
+            <kbd class="fire-key">SPACE</kbd>
+          </button>
         </div>
-        <div class="under-console"><div class="movement"><span>REPOSITION</span><button class="move-button" id="moveLeftBtn" aria-label="Move tank left" title="Move left (A)"><svg class="flip"><use href="#i-arrow"/></svg></button><button class="move-button" id="moveRightBtn" aria-label="Move tank right" title="Move right (D)"><svg><use href="#i-arrow"/></svg></button><span id="movesLabel">4 moves left</span></div><span class="aim-hint" id="aimHint">Drag on the battlefield to aim <span>↗</span></span><button class="text-button" id="restartPracticeBtn" hidden><svg><use href="#i-replay"/></svg> Reset field</button></div>
+        <div class="under-console">
+          <div class="movement"><span class="control-label">Reposition</span><button class="move-button" id="moveLeftBtn" aria-label="Move tank left" title="Move left (A)"><svg class="flip"><use href="#i-arrow"/></svg></button><button class="move-button" id="moveRightBtn" aria-label="Move tank right" title="Move right (D)"><svg><use href="#i-arrow"/></svg></button><span id="movesLabel">4 moves left</span></div>
+          <p class="aim-hint" id="aimHint">Drag on the battlefield to aim <span>↗</span></p>
+          <button class="text-button" id="restartPracticeBtn" hidden><svg><use href="#i-replay"/></svg> Reset field</button>
+        </div>
       </section>
       <aside class="arsenal-panel" aria-label="Your weapons">
-        <div class="arsenal-heading"><div><div class="eyebrow">PICK YOUR POSSIBILITIES</div><h2>Your arsenal <span id="weaponCount">10</span></h2></div><svg class="arsenal-box"><use href="#i-box"/></svg></div>
-        <div class="arsenal-subheading"><span id="inventoryHint">One shot. One weapon. Choose wisely.</span><span class="tiny-dot"></span></div>
+        <div class="arsenal-heading">
+          <div class="arsenal-title"><span class="eyebrow">Pick your possibilities</span><h2>Your arsenal <span id="weaponCount">10</span></h2></div>
+          <svg class="arsenal-box"><use href="#i-box"/></svg>
+        </div>
+        <p class="arsenal-subheading" id="inventoryHint">One shot. One weapon. Choose wisely.</p>
         <div class="inventory" id="inventory" role="group" aria-label="Select a weapon"></div>
-        <div class="selected-weapon"><span class="weapon-family" id="selectedCategory">CLASSIC</span><h3 id="selectedName">Single Shot</h3><p id="selectedDescription">The original. A clean arc and a satisfying explosion.</p><div class="weapon-stats"><span>BLAST <i id="blastMeter"></i></span><span>POINTS <strong id="damageValue">60</strong></span></div></div>
+        <div class="selected-weapon">
+          <span class="selected-icon" id="selectedIcon" aria-hidden="true"></span>
+          <div class="selected-body">
+            <span class="weapon-family" id="selectedCategory">CLASSIC</span>
+            <h3 id="selectedName">Single Shot</h3>
+            <p id="selectedDescription">The original. A clean arc and a satisfying explosion.</p>
+            <div class="weapon-stats"><span>BLAST <i id="blastMeter"></i></span><span>POINTS <strong id="damageValue">60</strong></span></div>
+          </div>
+        </div>
         <button class="arsenal-guide" id="catalogBtn"><span><svg><use href="#i-box"/></svg> Explore all 36 weapons</span><svg><use href="#i-arrow"/></svg></button>
       </aside>
     </div>
-    <div class="field-note"><span class="note-number">FIELD NOTES <span id="noteNumber">01 / 06</span></span><p id="fieldNote">Close counts. A bigger crater doesn’t always mean more points.</p><span class="note-decoration">↗</span></div>
-    <footer class="page-footer"><span>TWO TANKS. ONE LANDSCAPE. <strong>ENDLESS POSSIBILITIES.</strong></span><div><span><kbd>←</kbd><kbd>→</kbd> Angle</span><span><kbd>↑</kbd><kbd>↓</kbd> Power</span><span><kbd>SPACE</kbd> Fire</span><span class="save-indicator" id="saveIndicator"><span class="status-dot"></span> SAVED LOCALLY</span></div></footer>
+    <footer class="page-footer">
+      <div class="tip"><span class="tip-label">Field note <span id="noteNumber">01 / 06</span></span><p id="fieldNote">Close counts. A bigger crater doesn’t always mean more points.</p></div>
+      <div class="shortcuts"><span><kbd>←</kbd><kbd>→</kbd> Angle</span><span><kbd>↑</kbd><kbd>↓</kbd> Power</span><span><kbd>1</kbd>–<kbd>9</kbd> Weapon</span><span><kbd>Space</kbd> Fire</span><span class="save-indicator" id="saveIndicator"><span class="status-dot"></span> SAVED LOCALLY</span></div>
+    </footer>
   </main>
   <dialog id="matchDialog" class="dialog match-dialog" aria-labelledby="matchTitle">
     <form id="matchForm"><button type="button" class="dialog-close icon-button" data-close aria-label="Close match settings"><svg><use href="#i-close"/></svg></button><span class="eyebrow">FRESH GROUND. NEW POSSIBILITIES.</span><h2 id="matchTitle">Settle it on the hillside.</h2><p class="dialog-lead">Choose your battle. We’ll bring the fireworks.</p>
@@ -76,7 +114,7 @@
     </form>
   </dialog>
   <dialog id="catalogDialog" class="dialog catalog-dialog" aria-labelledby="catalogTitle"><button class="dialog-close icon-button" data-close aria-label="Close weapons"><svg><use href="#i-close"/></svg></button><span class="eyebrow" id="catalogEyebrow">A TOOL FOR EVERY KIND OF TROUBLE</span><h2 id="catalogTitle">Meet the arsenal.</h2><p class="dialog-lead" id="catalogLead">36 weapons. Plenty of ways to change the landscape.</p><a class="effects-link" href="flight-preview.html" target="_blank" rel="noopener">See every weapon in flight ↗</a><div class="catalog-toolbar"><input type="search" id="weaponSearch" placeholder="Find your next favorite…" aria-label="Search weapons"><select id="categoryFilter" aria-label="Filter weapon category"><option value="all">All types</option><option>Classic</option><option>Cluster</option><option>Terrain</option><option>Elemental</option><option>Special</option><option>Heavy</option></select></div><div class="catalog-grid" id="catalogGrid"></div><div class="draft-footer" id="draftFooter" hidden><span id="draftCount">0 / 10 weapons selected</span><button class="button button-light" id="randomDraftBtn">Surprise me</button><button class="button button-lime" id="startDraftBtn" disabled>Start battle <svg><use href="#i-arrow"/></svg></button></div></dialog>
-  <dialog id="helpDialog" class="dialog help-dialog" aria-labelledby="helpTitle"><button class="dialog-close icon-button" data-close aria-label="Close instructions"><svg><use href="#i-close"/></svg></button><span class="eyebrow">EASY TO LEARN. HARD TO PUT DOWN.</span><h2 id="helpTitle">A good shot changes everything.</h2><div class="help-steps"><div><span>01</span><div><h3>Pick your weapon.</h3><p>Each weapon has its own trick. Big explosions, bouncing shells, digging tunnels, or a shower of meteors.</p></div></div><div><span>02</span><div><h3>Find your angle.</h3><p>Drag away from your tank to aim, or use the angle and power sliders. The dotted guide shows the beginning of a normal shell’s path. Watch the wind.</p></div></div><div><span>03</span><div><h3>Fire. Then rethink the landscape.</h3><p>Earn points by hitting the other tank. Hitting yourself costs points. Tanks stay in the game; the highest score after the final volley wins.</p></div></div></div><div class="help-shortcuts"><span><kbd>← →</kbd> Angle</span><span><kbd>↑ ↓</kbd> Power</span><span><kbd>A D</kbd> Move</span><span><kbd>SPACE</kbd> Fire</span><span><kbd>G</kbd> Guide</span><span><kbd>P</kbd> Pause</span><span><kbd>M</kbd> Sound</span></div><label class="music-setting check-label"><input type="checkbox" id="musicCheckbox"> Play original game music</label><p class="credit">Browser adaptation using assets from the supplied Pocket Tanks APK.<br>Original game by Michael P. Welch / BlitWise. Music by Chronoton.</p><button class="button button-lime" data-close>Got it. Let’s make a crater. <svg><use href="#i-arrow"/></svg></button></dialog>
+  <dialog id="helpDialog" class="dialog help-dialog" aria-labelledby="helpTitle"><button class="dialog-close icon-button" data-close aria-label="Close instructions"><svg><use href="#i-close"/></svg></button><span class="eyebrow">EASY TO LEARN. HARD TO PUT DOWN.</span><h2 id="helpTitle">A good shot changes everything.</h2><div class="help-steps"><div><span>01</span><div><h3>Pick your weapon.</h3><p>Each weapon has its own trick. Big explosions, bouncing shells, digging tunnels, or a shower of meteors. Press <kbd>1</kbd>–<kbd>9</kbd> to pick one without leaving the keyboard.</p></div></div><div><span>02</span><div><h3>Find your angle.</h3><p>Drag away from your tank to aim, or use the angle and power sliders. The dotted guide shows the beginning of a normal shell’s path. Watch the wind.</p></div></div><div><span>03</span><div><h3>Fire. Then rethink the landscape.</h3><p>Earn points by hitting the other tank. Hitting yourself costs points. Tanks stay in the game; the highest score after the final volley wins.</p></div></div></div><div class="help-shortcuts"><span><kbd>← →</kbd> Angle</span><span><kbd>↑ ↓</kbd> Power</span><span><kbd>A D</kbd> Move</span><span><kbd>SPACE</kbd> Fire</span><span><kbd>1–9</kbd> Weapon</span><span><kbd>G</kbd> Guide</span><span><kbd>P</kbd> Pause</span><span><kbd>M</kbd> Sound</span></div><label class="music-setting check-label"><input type="checkbox" id="musicCheckbox"> Play original game music</label><p class="credit">Browser adaptation using assets from the supplied Pocket Tanks APK.<br>Original game by Michael P. Welch / BlitWise. Music by Chronoton.</p><button class="button button-lime" data-close>Got it. Let’s make a crater. <svg><use href="#i-arrow"/></svg></button></dialog>
   <dialog id="resultDialog" class="dialog result-dialog" aria-labelledby="resultTitle"><span class="result-medallion"><svg><use href="#i-tank"/></svg></span><span class="eyebrow">THE DUST HAS SETTLED</span><h2 id="resultTitle">That’s a good day’s work.</h2><p class="dialog-lead" id="resultSubtitle">You take the hillside.</p><div class="final-scores"><div><span id="finalP1Name">YOU</span><strong id="finalP1Score">000</strong></div><span>:</span><div><span id="finalP2Name">RANGER</span><strong id="finalP2Score">000</strong></div></div><div class="result-actions"><button class="button button-lime" id="rematchBtn">One more round <svg><use href="#i-replay"/></svg></button><button class="button button-light" id="resultSettingsBtn">Change the setup</button></div></dialog>
   <div class="notification" id="notification" role="status"></div><noscript><div class="noscript">Enable JavaScript to play Pocket Tanks in your browser.</div></noscript>
 </body>

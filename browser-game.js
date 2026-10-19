@@ -82,8 +82,23 @@
     }
   }
   let battle, paused = false, ai = null, loadouts = [], pendingOptions = null, drafting = false, draftSide = 0, draftPicks = [[], []];
-  let noticeTimer, noteIndex = 0, dragging = false, accumulator = 0;
+  let noticeTimer, noteIndex = 0, dragging = false, accumulator = 0, fireWeaponId = '';
   const sounds = new Sounds();
+  // The battlefield keeps the world's 2:1 proportions on every screen. Extra room
+  // in the frame becomes sky above the world instead of a squashed landscape.
+  const view = { scale: 1, ox: 0, oy: 0, dpr: 1, w: 0, h: 0 };
+  function fitCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    if (!rect.width || !rect.height) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const w = Math.round(rect.width), h = Math.round(rect.height);
+    if (w === view.w && h === view.h && dpr === view.dpr) return;
+    view.dpr = dpr; view.w = w; view.h = h;
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    view.scale = w / C.W;
+    view.ox = 0;
+    view.oy = h - C.H * view.scale;
+  }
   function notify(message) {
     $('notification').textContent = message; $('notification').classList.add('visible');
     clearTimeout(noticeTimer); noticeTimer = setTimeout(() => $('notification').classList.remove('visible'), 2900);
@@ -105,6 +120,7 @@
       this.land = document.createElement('canvas'); this.land.width = C.W / 2; this.land.height = C.H / 2;
       this.landCtx = this.land.getContext('2d'); this.landImage = this.landCtx.createImageData(this.land.width, this.land.height);
       this.fx = new WeaponEffects(POCKET_NATIVE_FX, { reducedMotion, particleLimit: matchMedia('(max-width:650px)').matches ? 650 : 1100 }); this.labels = []; this.clock = 0;
+      this.edge = '#101a30'; this.edgeTop = '#0a1020';
       this.tankSprite = new Image(); this.tankSprite.src = 'assets/graytank0001.png';
       this.scenery = new Image();
       this.scenery.onload = () => { if (battle) this.makeSky(); };
@@ -115,6 +131,20 @@
       g.putImageData(pixels, 0, 0);
     }
     reset() { this.fx.reset(); this.labels = []; this.makeSky(); }
+    // Screen-constant size: the world scales, HUD lettering does not.
+    px(size) { return size / view.scale; }
+    sampleEdge() {
+      try {
+        // Probe through a throwaway 1x1 canvas so the sky context keeps GPU rendering.
+        const probe = document.createElement('canvas');
+        probe.width = probe.height = 1;
+        const pc = probe.getContext('2d', { willReadFrequently: true });
+        pc.drawImage(this.sky, 0, 0, 1, 1, 0, 0, 1, 1);
+        const d = pc.getImageData(0, 0, 1, 1).data;
+        this.edge = `rgb(${d[0]},${d[1]},${d[2]})`;
+        this.edgeTop = `rgb(${Math.round(d[0] * .52)},${Math.round(d[1] * .52)},${Math.round(d[2] * .62)})`;
+      } catch { this.edge = '#101a30'; this.edgeTop = '#0a1020'; }
+    }
     makeSky() {
       const c = this.sky.getContext('2d'), rng = C.random(battle.options.seed + 73);
       if (this.scenery.complete && this.scenery.naturalWidth) {
@@ -122,6 +152,7 @@
         const w = this.scenery.naturalWidth * scale, h = this.scenery.naturalHeight * scale;
         c.imageSmoothingEnabled = true;
         c.drawImage(this.scenery, (C.W - w) / 2, (C.H - h) / 2, w, h);
+        this.sampleEdge();
         return;
       }
       const sky = c.createLinearGradient(0, 0, 0, 510); sky.addColorStop(0, '#121e3b'); sky.addColorStop(.5, '#334567'); sky.addColorStop(1, '#ce7d58');
@@ -159,6 +190,7 @@
         c.beginPath(); c.moveTo(x - 5, y + 2); c.quadraticCurveTo(x - 2, y - 3, x, y); c.quadraticCurveTo(x + 3, y - 3, x + 6, y + 1); c.stroke();
       }
       c.globalAlpha = .3; c.drawImage(this.grain, 0, 0, C.W, C.H); c.globalAlpha = 1;
+      this.sampleEdge();
     }
     updateLand() {
       const terrain = battle.terrain, pixels = this.landImage.data, cols = terrain.cols;
@@ -226,9 +258,9 @@
         const bounce = reducedMotion ? 0 : Math.sin(this.clock * 3) * 2;
         ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(-5, -55 + bounce); ctx.lineTo(5, -55 + bounce); ctx.lineTo(0, -49 + bounce); ctx.fill();
       }
-      ctx.font = 'bold 10px Lato, sans-serif'; ctx.textAlign = 'center'; ctx.fillStyle = '#ecedce';
+      ctx.font = `bold ${this.px(11)}px Lato, sans-serif`; ctx.textAlign = 'center'; ctx.fillStyle = '#ecedce';
       ctx.globalAlpha = 1;
-      ctx.shadowColor = '#334128'; ctx.shadowBlur = 4; ctx.fillText(buried ? 'BURIED' : playerNames()[tank.side], 0, buried ? battle.terrain.ground(tank.x) - tank.y - 14 : 28); ctx.shadowBlur = 0;
+      ctx.shadowColor = '#334128'; ctx.shadowBlur = 4; ctx.fillText(buried ? 'BURIED' : playerNames()[tank.side], 0, buried ? battle.terrain.ground(tank.x) - tank.y - this.px(14) : this.px(28)); ctx.shadowBlur = 0;
       ctx.restore();
     }
     drawGuide() {
@@ -250,8 +282,19 @@
     draw() {
       if (!battle) return;
       if (battle.terrain.dirty) this.updateLand();
+      // Map the fixed 1200x600 world onto the frame without ever squashing it.
+      const k = view.dpr * view.scale;
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.fillStyle = this.edge; ctx.fillRect(0, 0, canvas.width, canvas.height);
+      // Frames taller than the world's 2:1 grow sky instead of squashing terrain.
+      if (view.oy > .5) {
+        const band = view.dpr * view.oy;
+        const sky = ctx.createLinearGradient(0, 0, 0, band);
+        sky.addColorStop(0, this.edgeTop); sky.addColorStop(1, this.edge);
+        ctx.fillStyle = sky; ctx.fillRect(0, 0, canvas.width, band);
+      }
+      ctx.setTransform(k, 0, 0, k, view.dpr * view.ox, view.dpr * view.oy);
       ctx.save();
-      ctx.fillStyle = '#101a30'; ctx.fillRect(0, 0, C.W, C.H);
       if (!reducedMotion && this.fx.shake) ctx.translate((Math.random() - .5) * this.fx.shake, (Math.random() - .5) * this.fx.shake);
       ctx.drawImage(this.sky, 0, 0);
       ctx.imageSmoothingEnabled = true; ctx.drawImage(this.land, 0, 0, C.W, C.H);
@@ -272,14 +315,15 @@
       this.fx.draw(ctx);
       ctx.globalAlpha = 1;
       for (const l of this.labels) {
-        ctx.globalAlpha = Math.min(1, l.life); ctx.font = 'bold 25px Lato, sans-serif'; ctx.textAlign = 'center'; ctx.shadowColor = '#263320'; ctx.shadowBlur = 6;
+        ctx.globalAlpha = Math.min(1, l.life); ctx.font = `bold ${this.px(26)}px Lato, sans-serif`; ctx.textAlign = 'center'; ctx.shadowColor = '#263320'; ctx.shadowBlur = 6;
         ctx.fillStyle = l.points > 0 ? '#f0ffbd' : '#ffd0ae'; ctx.fillText((l.points > 0 ? '+' : '−') + Math.abs(l.points), l.x, l.y);
-        if (l.direct) { ctx.font = 'bold 8px Lato, sans-serif'; ctx.fillText('DIRECT HIT', l.x, l.y - 20); }
+        if (l.direct) { ctx.font = `bold ${this.px(9)}px Lato, sans-serif`; ctx.fillText('DIRECT HIT', l.x, l.y - this.px(20)); }
         ctx.shadowBlur = 0;
       }
       ctx.globalAlpha = 1;
       if (!reducedMotion && this.fx.flash) { ctx.globalAlpha = this.fx.flash; ctx.fillStyle = this.fx.flashColor; ctx.fillRect(0, 0, C.W, C.H); ctx.globalAlpha = 1; }
       ctx.restore();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
     }
   }
   const renderer = new Renderer();
@@ -296,6 +340,8 @@
     const names = playerNames(), human = !(battle.options.mode === 'cpu' && battle.active === 1), ready = battle.phase === 'aim' && human && !paused;
     $('modeLabel').textContent = { cpu: 'YOU VS. COMPUTER', local: 'LOCAL TWO PLAYERS', practice: 'TARGET PRACTICE' }[battle.options.mode];
     $('roundsLabel').textContent = battle.practice ? 'UNLIMITED SHOTS' : `${battle.options.rounds} VOLLEYS`;
+    $('rivalLabel').textContent = battle.practice ? 'ALL 36 WEAPONS' : battle.options.mode === 'local' ? 'PASS & PLAY' : { easy: 'SCOUT · EASY', normal: 'RANGER · NORMAL', hard: 'VETERAN · HARD' }[battle.options.difficulty];
+    $('rivalIcon').firstElementChild.setAttribute('href', battle.practice ? '#i-cross' : battle.options.mode === 'local' ? '#i-box' : '#i-bolt');
     document.querySelectorAll('.nav-mode').forEach(button => button.classList.toggle('active', button.dataset.mode === battle.options.mode));
     $('p1Name').textContent = names[0]; $('p2Name').textContent = names[1];
     $('p1Score').textContent = formatScore(battle.tanks[0].score); $('p2Score').textContent = formatScore(battle.tanks[1].score);
@@ -322,15 +368,23 @@
     const all = battle.practice ? practiceSlots() : loadouts[battle.active];
     $('weaponCount').textContent = battle.practice ? '∞' : tank.inventory.length;
     $('inventoryHint').textContent = battle.practice ? 'Your favorites. Find all 36 in the guide below.' : isCPU ? 'The other side has a few ideas, too.' : 'One shot. One weapon. Choose wisely.';
-    $('inventory').innerHTML = all.map(id => {
+    $('inventory').innerHTML = all.map((id, index) => {
       const w = weapons.find(w => w.id === id), used = !battle.practice && !tank.inventory.includes(id);
       if (!w) return '';
-      return `<button class="weapon-button ${tank.selected === id ? 'selected' : ''} ${used ? 'used' : ''}" data-weapon="${w.id}" aria-pressed="${tank.selected === id}" aria-label="${esc(w.name)}${used ? ', already fired' : ''}" ${used || isCPU || battle.phase !== 'aim' || paused ? 'disabled' : ''} title="${esc(descriptions[w.id])}">${WeaponIcons.html(w)}<span>${esc(w.name)}<small>${used ? 'SPENT' : w.category.toUpperCase()}</small></span></button>`;
+      const key = index < 9 ? `<kbd class="weapon-key" aria-hidden="true">${index + 1}</kbd>` : '';
+      return `<button class="weapon-button ${tank.selected === id ? 'selected' : ''} ${used ? 'used' : ''}" data-weapon="${w.id}" aria-pressed="${tank.selected === id}" aria-label="${esc(w.name)}${used ? ', already fired' : ''}" ${used || isCPU || battle.phase !== 'aim' || paused ? 'disabled' : ''} title="${esc(descriptions[w.id])}">${WeaponIcons.html(w)}<span class="weapon-copy"><span class="weapon-name">${esc(w.name)}</span><small>${used ? 'SPENT' : w.category.toUpperCase()}</small></span>${key}</button>`;
     }).join('');
     const w = battle.weapon, stat = C.stats(w);
     $('selectedName').textContent = w.name; $('selectedCategory').textContent = `${w.category.toUpperCase()} / ${w.pack.toUpperCase()}`;
     $('selectedDescription').textContent = descriptions[w.id]; $('damageValue').textContent = stat.damage ? stat.damage + (['triple', 'five', 'chain', 'drill', 'napalm', 'hail', 'bees', 'meteors', 'volcano', 'burst', 'tunnel'].includes(w.behavior) ? ' / HIT' : '') : 'UTILITY';
     $('blastMeter').style.setProperty('--blast', Math.min(100, stat.radius / 137 * 100) + '%');
+    if ($('selectedIcon').dataset.weapon !== w.id) { $('selectedIcon').dataset.weapon = w.id; $('selectedIcon').innerHTML = WeaponIcons.html(w); }
+    if (fireWeaponId !== w.id) {
+      fireWeaponId = w.id;
+      $('fireWeapon').innerHTML = WeaponIcons.html(w);
+      $('fireSub').textContent = w.name;
+    }
+    $('fireBtn').setAttribute('aria-label', `Fire ${w.name}`);
   }
   function practiceSlots() {
     const favorites = ['single_shot', 'big_shot', '3_shot', 'napalm', 'jackhammer', 'nuke', 'beehive', 'meteor_shower', 'laser', 'dirtball'];
@@ -530,7 +584,8 @@
     }
   });
   function pointerAim(e) {
-    const r = canvas.getBoundingClientRect(), x = (e.clientX - r.left) / r.width * C.W, y = (e.clientY - r.top) / r.height * C.H;
+    const r = canvas.getBoundingClientRect();
+    const x = (e.clientX - r.left - view.ox) / view.scale, y = (e.clientY - r.top - view.oy) / view.scale;
     const dx = x - battle.tank.x, dy = battle.tank.y - 18 - y;
     battle.tank.angle = C.clamp(Math.round(Math.atan2(dy, dx) * 180 / Math.PI), 0, 180);
     battle.tank.power = C.clamp(Math.round(Math.hypot(dx, dy) / 4.7), 5, 100); syncControls();
@@ -541,6 +596,10 @@
   canvas.addEventListener('pointercancel', () => { dragging = false; });
   document.addEventListener('visibilitychange', () => { accumulator = 0; sounds.syncMusic(); });
   window.addEventListener('pagehide', saveBattle);
+  window.addEventListener('resize', fitCanvas);
+  window.addEventListener('orientationchange', () => setTimeout(fitCanvas, 120));
+  if (window.ResizeObserver) new ResizeObserver(fitCanvas).observe(canvas);
+  fitCanvas();
 
   let previous = performance.now();
   function frame(now) {

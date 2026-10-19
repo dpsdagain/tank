@@ -7,7 +7,7 @@
     "start": "node server.cjs",
     "dev": "node server.cjs",
     "test": "node --test tests/game.test.cjs tests/effects.test.cjs tests/projectiles.test.cjs",
-    "check": "node --check game-core.js && node --check browser-game.js && node --check weapons.js && node --check projectile-art.js && node --check weapon-fx.js && node --check native-effects.js && node --check flight-preview.js && node --check assets/projectiles/painted/manifest.js && node --check assets/icons/painted/catalog.js && node --check assets/vfx/native-impact-recipes.js && node --check assets/vfx/impact-art.js && node --check assets/vfx/impact-preview.js"
+    "check": "node --check game-core.js && node --check browser-game.js && node --check weapons.js && node --check projectile-art.js && node --check weapon-fx.js && node --check native-effects.js && node --check flight-preview.js && node --check assets/projectiles/painted/manifest.js && node --check assets/icons/painted/catalog.js && node --check assets/vfx/native-impact-recipes.js && node --check assets/vfx/impact-art.js && node --check assets/vfx/impact-preview.js && node --check tools/inspect.cjs"
   },
   "engines": { "node": ">=18" }
 }
