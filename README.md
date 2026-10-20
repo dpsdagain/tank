@@ -33,6 +33,7 @@ Then open **http://127.0.0.1:5173**. Node 18 or newer is sufficient; `npm instal
 - Touch aiming, keyboard controls, pause, fullscreen, sound/music toggles and optional aim guide.
 - A local save at the start of each turn. Reloading during a shot restores the beginning of that turn. Browser storage availability varies in private mode and with `file://` pages.
 - A rebuilt game shell: compact match bar, one glass HUD language over the battlefield, a 10 px minimum type size, 20 px slider thumbs, 1–9 weapon shortcut badges, a **FIRE** button that shows the weapon it will launch, and a battlefield that keeps its proportions on every screen instead of squashing on phones. See `qa/UI_UX_OVERHAUL.md`.
+- A **night-battery** theme: deep indigo chrome with warm amber accents instead of the old olive-green wash, matched to the dusk battlefield art (navy sky, amber sun, brown soil). See `qa/THEME_REFRESH.md`.
 
 ## Controls
 

@@ -199,8 +199,8 @@
         if (!terrain.cells[index]) { pixels[offset + 3] = 0; continue; }
         const depth = y * 2 - terrain.surface[x], shade = ((Math.imul(x, 73856093) ^ Math.imul(y, 19349663)) >>> 0) % 13 - 6;
         let r, g, b;
-        if (depth < 4) { r = 139; g = 215; b = 66; }
-        else if (depth < 10) { r = 69; g = 126; b = 52; }
+        if (depth < 4) { r = 150; g = 186; b = 82; }
+        else if (depth < 10) { r = 78; g = 120; b = 54; }
         else if (depth < 17) { r = 100; g = 77; b = 49; }
         else {
           const t = C.clamp((y * 2 - 330) / 270, 0, 1);
@@ -235,15 +235,15 @@
     drawTank(tank) {
       if (battle.lastShot?.weaponId === 'jump_jets' && battle.phase === 'flight' &&
           tank.side === battle.lastShot.side && tank.y < battle.terrain.ground(tank.x) - 2) this.fx.drawJets(ctx, tank);
-      const color = tank.side ? '#cf866c' : '#a9cc6f', dark = tank.side ? '#845642' : '#536a3e';
+      const color = tank.side ? '#cf866c' : '#a7d3ea', dark = tank.side ? '#845642' : '#3d6f8d';
       const slope = C.clamp(Math.atan2(battle.terrain.ground(tank.x + 13) - battle.terrain.ground(tank.x - 13), 26), -.42, .42);
       const buried = tank.y > battle.terrain.ground(tank.x) + 15;
       ctx.save(); ctx.translate(tank.x, tank.y - 2);
       if (buried) ctx.globalAlpha = .42;
       ctx.fillStyle = '#202a3250'; ctx.beginPath(); ctx.ellipse(0, 4, 28, 5, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.save(); ctx.rotate(slope); ctx.fillStyle = '#374136'; ctx.beginPath(); ctx.roundRect(-24, -9, 48, 12, 6); ctx.fill();
-      ctx.fillStyle = '#79816b';
-      for (let i = -16; i <= 16; i += 8) { ctx.beginPath(); ctx.arc(i, -3, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#353e33'; ctx.fillRect(i - 1, -4, 2, 2); ctx.fillStyle = '#79816b'; }
+      ctx.save(); ctx.rotate(slope); ctx.fillStyle = '#2c3444'; ctx.beginPath(); ctx.roundRect(-24, -9, 48, 12, 6); ctx.fill();
+      ctx.fillStyle = '#6c7a90';
+      for (let i = -16; i <= 16; i += 8) { ctx.beginPath(); ctx.arc(i, -3, 3.5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#353e33'; ctx.fillRect(i - 1, -4, 2, 2); ctx.fillStyle = '#6c7a90'; }
       const body = ctx.createLinearGradient(0, -22, 0, -5); body.addColorStop(0, color); body.addColorStop(1, dark);
       ctx.fillStyle = body; ctx.beginPath(); ctx.moveTo(-23, -9); ctx.lineTo(-17, -19); ctx.lineTo(15, -19); ctx.lineTo(23, -9); ctx.closePath(); ctx.fill();
       if (this.tankSprite.complete && this.tankSprite.naturalWidth) { ctx.globalAlpha = .22; ctx.drawImage(this.tankSprite, -23, -19, 46, 19); ctx.globalAlpha = 1; }
@@ -258,9 +258,9 @@
         const bounce = reducedMotion ? 0 : Math.sin(this.clock * 3) * 2;
         ctx.fillStyle = color; ctx.beginPath(); ctx.moveTo(-5, -55 + bounce); ctx.lineTo(5, -55 + bounce); ctx.lineTo(0, -49 + bounce); ctx.fill();
       }
-      ctx.font = `bold ${this.px(11)}px Lato, sans-serif`; ctx.textAlign = 'center'; ctx.fillStyle = '#ecedce';
+      ctx.font = `bold ${this.px(11)}px Lato, sans-serif`; ctx.textAlign = 'center'; ctx.fillStyle = '#f2efe0';
       ctx.globalAlpha = 1;
-      ctx.shadowColor = '#334128'; ctx.shadowBlur = 4; ctx.fillText(buried ? 'BURIED' : playerNames()[tank.side], 0, buried ? battle.terrain.ground(tank.x) - tank.y - this.px(14) : this.px(28)); ctx.shadowBlur = 0;
+      ctx.shadowColor = '#0b1220'; ctx.shadowBlur = 4; ctx.fillText(buried ? 'BURIED' : playerNames()[tank.side], 0, buried ? battle.terrain.ground(tank.x) - tank.y - this.px(14) : this.px(28)); ctx.shadowBlur = 0;
       ctx.restore();
     }
     drawGuide() {
@@ -299,7 +299,7 @@
       ctx.drawImage(this.sky, 0, 0);
       ctx.imageSmoothingEnabled = true; ctx.drawImage(this.land, 0, 0, C.W, C.H);
       // Sparse blades and stones make the surface readable at a glance.
-      ctx.strokeStyle = '#a7ef6b'; ctx.lineWidth = 1;
+      ctx.strokeStyle = '#c3d67f'; ctx.lineWidth = 1;
       for (let x = 9; x < C.W; x += 19) {
         const y = battle.terrain.ground(x);
         ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 2, y - 4 - (x % 5)); ctx.stroke();
@@ -315,8 +315,8 @@
       this.fx.draw(ctx);
       ctx.globalAlpha = 1;
       for (const l of this.labels) {
-        ctx.globalAlpha = Math.min(1, l.life); ctx.font = `bold ${this.px(26)}px Lato, sans-serif`; ctx.textAlign = 'center'; ctx.shadowColor = '#263320'; ctx.shadowBlur = 6;
-        ctx.fillStyle = l.points > 0 ? '#f0ffbd' : '#ffd0ae'; ctx.fillText((l.points > 0 ? '+' : '−') + Math.abs(l.points), l.x, l.y);
+        ctx.globalAlpha = Math.min(1, l.life); ctx.font = `bold ${this.px(26)}px Lato, sans-serif`; ctx.textAlign = 'center'; ctx.shadowColor = '#0b1220'; ctx.shadowBlur = 6;
+        ctx.fillStyle = l.points > 0 ? '#fdf3d2' : '#ffd0ae'; ctx.fillText((l.points > 0 ? '+' : '−') + Math.abs(l.points), l.x, l.y);
         if (l.direct) { ctx.font = `bold ${this.px(9)}px Lato, sans-serif`; ctx.fillText('DIRECT HIT', l.x, l.y - this.px(20)); }
         ctx.shadowBlur = 0;
       }
